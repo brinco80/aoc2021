@@ -33,15 +33,23 @@ defmodule Q17 do
 
   def simulation(init_state, %{x_min: x_min, x_max: x_max, y_min: y_min, y_max: y_max} = _target_area, n) do
     0..n-1
-    |> Enum.reduce([{init_state, false}],
+    |> Enum.reduce_while([{init_state, false}],
       fn _t, [{state, _} | _] = acc ->
         new_state = probe_dynamics(state)
 
         {{x,y},_} = new_state
 
+          # check if i am within target area
+        is_target_area = (x >= x_min && x <= x_max && y >= y_min && y <=y_max)
+        new_acc = [{new_state, is_target_area} | acc ]
 
-        # check if i am within target area
-        [{new_state, x >= x_min && x <= x_max && y >= y_min && y <=y_max} | acc ]
+        if y < y_min || is_target_area do # I can't reach target area anymore or I already reached
+          {:halt, new_acc}
+        else
+          {:cont, new_acc}
+        end
+
+
       end
     )
     |> Enum.reverse()
@@ -50,7 +58,6 @@ defmodule Q17 do
 
   def max_height(v0, target_area, n) do
     sim = simulation({{0,0},v0}, target_area, n)
-#    |> IO.inspect()
 
     success = sim
     |> Enum.any?(fn {_state, x} -> x end)
@@ -58,9 +65,7 @@ defmodule Q17 do
     if success do
       sim
       |> Enum.with_index()
-#      |> Enum.map( fn { {{{x,y}, v}, _}, t } -> {y, t, {{x,y}, v} } end)
       |> Enum.map( fn { {{{_x,y}, _v}, _}, _t } -> y end)
-#      |> Enum.max_by(fn {y, _, _ } -> y end)
       |> Enum.max()
 
     else
@@ -82,13 +87,6 @@ defmodule Q17 do
       end
     )
     |> Enum.filter(fn p -> p != {x0,y0} end)
-
-
-    # [
-    #   {x-1, y-1}, {x, y-1}, {x+1, y-1},
-    #   {x-1, y}, {x+1, y-1},
-    #   {x-1, y+1}, {x, y+1}, {x+1, y+1},
-    # ]
   end
 
   def y_estimation(y, vy) do
@@ -123,13 +121,14 @@ defmodule Q17 do
     )
   end
 
-  def part_i(n, n_neigh,  filename \\ "lib/Q17/test") do
+  # part_i(1000, 50, "lib/Q17/data")
+  def part_i(n_sim, n_neigh,  filename \\ "lib/Q17/test") do
     target_area = read_and_parse(filename)
 
     IO.puts("Random guess")
-    vi = random_guess(target_area, n, 500) |> IO.inspect()
+    vi = random_guess(target_area, n_sim, 500) |> IO.inspect()
 
-    f = fn v ->  max_height(v, target_area, n)  end
+    f = fn v ->  max_height(v, target_area, n_sim)  end
 #    yi = f.(vi)
 
 
@@ -149,4 +148,32 @@ defmodule Q17 do
       end
     )
   end
+
+
+  def part_ii(n_sim, n_max, filename \\ "lib/Q17/test") do
+    target_area = read_and_parse(filename)
+
+    # search grid
+    grid = 0..n_max |>
+    Enum.flat_map(
+      fn x ->
+        -n_max..n_max
+        |> Enum.map(
+          fn y ->
+            {x,y}
+          end
+        )
+      end
+    )
+
+    f = fn v ->  max_height(v, target_area, n_sim)  end
+
+    # brute force search
+    grid
+    |> Enum.map(f)
+    |> Enum.filter(&(&1))
+    |> length()
+
+  end
+
 end
