@@ -30,19 +30,19 @@ defmodule Q21 do
   # d(i) = k(i)-1 mod 100 + k(i) mod 100 + k(i)+ 1 mod 100 + 3
   #      ~ 3*k(i) mod 100 + 3
   #      ~ 3*k(i)+3 mod 10
-  #      ~ 9*i -3 mod 10  (I don't know how to justifu this step but it works)
   # where k(i) is the starting number at turn i
 
   # k(i) can be modelled as
-  # k(i) = 3*i-2 for i < 33
-  # k(i) = 3*i-1 for
+  # k(i) = 3*i-2
+  # Given that board is mod 10
+  # k(i) = 3*i-2 mod 10 (although it should break for i > 33, and it doesn't for some number math )
+  # replacing on d(i) we have
+  # d(i) = 9*i -3 mod 10
 
   def deterministic_die(i), do: Integer.mod(9*i-3,10)
 
   def dirac_die_freq() do
     %{
-#       1 => 2,
-#       2 => 1,
       3 => 1,
       4 => 3,
       5 => 6,
@@ -76,17 +76,13 @@ defmodule Q21 do
     "[P1 #{p1+1} #{s1}] [P2 #{p2+1} #{s2}] Next turn #{t}"
   end
 
-  def quantum_search(state, goal) do
-    #IO.puts("Enter new level")
-    %{game: game_state, search: [w1, w2], mult: q, depth: d} = state
-
-    # For each die combination search rescursively until someone wins
+  def quantum_search( %{game: game_state, search: [w1, w2], mult: q, depth: d}, goal) do
+    # For each die combination search recursively until someone wins
     dirac_die_freq() |>
     Enum.reduce([w1, w2],
       fn {die, freq}, [acc_w1, acc_w2]  ->
         # play the game!
         new_game_state = play(die, game_state)
-
 
         case new_game_state do
           %{p1: {_p, s}} when s >= goal ->  # player 1 wins
@@ -94,7 +90,6 @@ defmodule Q21 do
           %{p2: {_p, s}} when s >= goal ->  # player 2 wins
             [acc_w1, acc_w2+freq*q] # add wins with unused weights
           _ -> # keep playing, update game_state and increase multiplier
-            #IO.puts("Going deeper!")
             quantum_search(%{game: new_game_state, search: [acc_w1, acc_w2], mult: q*freq, depth: d+1}, goal)
         end
       end
