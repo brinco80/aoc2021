@@ -155,52 +155,51 @@ defmodule Q22 do
 
   end
 
-  # def check_disjoints(cs)  do
-  #   n = length(cs)
 
-  #   for i <- 0..n-2, j <- i+1..n-1 do
-  #     p = Enum.at(cs, i)
-  #     q = Enum.at(cs, j)
-  #     r = cuboid_intersection(p,q)
-  #     is_empty(r)
-  #   end
-  # end
+  # on step
+  # I only care about not counting twice
+  # to do that new cuboids are decompsed in cuboids that don't contain exitent on_cuboids
+  # the remains are added to on_cuboids
+  def apply_step({"on", q1, q2}, cuboids) do
+    q = [q1, q2]
+    qs_rem = cuboids
+    |> Enum.reduce([q],
+      fn c, qs ->
+        qs_rem = qs
+        |> Enum.reduce([],
+          fn q, acc ->
+            %{p: _ps, q: qs, r: _r} = expand_intersection(c, q)
+            acc ++ qs
+          end
+        )
+        qs_rem # remainder of intersection between all cuboids and all the qs
+      end
+    )
+    cuboids ++ qs_rem # add remainder to on cuboids
+  end
+
+  # off step is different and simpler, just remove intersections between on cuboids and q
+  # it exploits disjoints between cuboids to work properly
+  def apply_step({"off", q1, q2}, cuboids) do
+    q = [q1, q2]
+    cuboids
+    |> Enum.reduce([],
+      fn c, on_rem ->
+        %{p: ps, q: _qs, r: r} = expand_intersection(c, q) # ps are active parts of c, and qs is the remainder of q to be applied
+        if r == [] do
+          on_rem ++ [c] # no inteserction, keep original on_cuboid c
+        else
+          on_rem ++ ps # intersection, keep parts of the orignal on_cuboid that don't intersect with off cuboid
+        end
+      end
+    )
+
+  end
 
 
   def add_cuboids([{"on", p1, p2} | rest]) do
-
     rest
-    |> Enum.reduce([[p1, p2]],
-      fn {state, p, q}, cuboids ->
-
-        {state, p, q} |> IO.inspect(charlists: :as_lists)
-        new_state = cuboids |>
-        Enum.flat_map( # FIXME: Change flat_map by reduce, each cuboids "bites" part of the incoming cuboid and the rest is passed to the next cuboid
-          fn c ->
-            IO.puts("Splitting")
-            IO.inspect(c)
-            # ps = c \ [p,q] ; qs = [p,q] \ c ; r = c ^ [p,q]
-            %{p: ps, q: qs, r: r} = expand_intersection(c, [p,q])
-            |> IO.inspect(charlists: :as_lists)
-            IO.puts("Decision")
-            if state == "off" do
-              # turn off cuboids, just return p \ q
-              ps
-            else
-              # turn on cuboids
-              if r != [] do
-                #Enum.concat([ps, qs, r])
-               Enum.concat([ps, r])
-              else
-                Enum.concat([ps, qs])
-              end
-            end |> IO.inspect(charlists: :as_lists)
-          end
-        )
-        IO.puts("step applied #{count_cubes(new_state) - count_cubes(cuboids)} new cubes")
-        new_state |> Enum.uniq |> IO.inspect(charlists: :as_lists)
-      end
-    )
+    |> Enum.reduce([[p1, p2]], &apply_step/2)
   end
 
   def count_cubes(cuboids) do
@@ -236,14 +235,8 @@ defmodule Q22 do
   end
 
   def part_ii(filename \\ "lib/Q22/test") do
-    steps = read_and_parse(filename)
-
-#    universe = [[-50,-50,-50], [50,50,50,]]
-
-    cuboids = steps
+    read_and_parse(filename)
     |> add_cuboids()
-
-
-    {cuboids, count_cubes(cuboids)}
+    |> count_cubes()
   end
 end
