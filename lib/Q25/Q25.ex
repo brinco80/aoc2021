@@ -49,24 +49,6 @@ defmodule Q25 do
     end |> Enum.join()
   end
 
-  def transition_to_string(from, to) do
-    keys = from
-    |> Map.keys
-
-    {max_i, max_j} = for {i,j} <- keys, reduce: {-1,-1} do
-      {m,n} -> {max(m,i), max(n,j)}
-    end
-
-    for i <- 0..max_i, j<- 0..2*max_j+3 do
-      case j do
-        x when x <= max_j -> Map.get(from, {i,x}, " ")
-        x when x == max_j+1 -> "    "
-        x when x <= 2*max_j + 2 -> Map.get(to, {i,x-(max_j+2)}, " ")
-        _ -> "\n"
-      end
-    end |> Enum.join()
-  end
-
   def print_state(state) do
     state |> state_to_string |> IO.write
   end
@@ -139,8 +121,6 @@ defmodule Q25 do
           IO.puts("Stopped at #{n+1}")
           {:halt, new_state}
         else
-          #IO.puts("Step #{n}")
-          #print_state(new_state)
           {:cont, new_state}
         end
       end
