@@ -1,0 +1,19 @@
+d13
+inp w       w
+mul x 0     x = 0
+add x z     x = 0
+mod x 26    x = 0 
+div z 1     z = 0
+add x 11    x = 11
+eql x w     x = 0
+eql x 0     x = 1
+mul y 0     y = 0
+add y 25    y = 25
+mul y x     y = 25
+add y 1     y = 26
+mul z y     z = 0
+mul y 0     y = 0
+add y w     y = w
+add y 5     y = w+5
+mul y x     y = w+5
+add z y     z = d13+5

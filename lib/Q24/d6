@@ -1,0 +1,21 @@
+d6 
+        z = 26*zp + d7+5
+inp w     # d6
+mul x 0     x=0
+add x z     x=z
+mod x 26    x = z%26 = d7+5
+div z 26    z= z/26 = zp
+add x -8    x = d7-3
+eql x w     x = (d7-3 == d6)
+eql x 0     x = (d7-3 != d6)
+mul y 0     y = 0
+add y 25    y = 25
+mul y x     y = 25*x
+add y 1     y = 25*x + 1 | 26 1
+mul z y     z = (25*x+1)*zp | 26*zp zp
+mul y 0     y = 0
+add y w     y = d6
+add y 8     y = d6+8
+mul y x     y = (d6+8)*x  | d6+8 0
+add z y     z = 26*zp + d6+8  | zp
+

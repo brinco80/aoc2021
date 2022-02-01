@@ -1,0 +1,20 @@
+d10
+            z = 26*26*(d13+5) + 26*(d12+5) + d11+1
+inp w       w = d10
+mul x 0     x = 0
+add x z     x = z
+mod x 26    x = z%26 = d11+1
+div z 1     z = z
+add x 15    x = d11+16
+eql x w     x = 0
+eql x 0     x = 1
+mul y 0     y = 0
+add y 25    y = 25
+mul y x     y = 25
+add y 1     y = 26
+mul z y     z = 26*z = 26*26*26*(d13+5) + 26*26*(d12+5) + 26*(d11+1)
+mul y 0     y = 0
+add y w     y = w = d10
+add y 15    y = d10+15
+mul y x     y = d10+15
+add z y     z = 26*26*26*(d13+5) + 26*26*(d12+5) + 26*(d11+1) + d10+15

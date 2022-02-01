@@ -1,0 +1,27 @@
+d1
+
+inp w       w = d1
+mul x 0     x = 0
+add x z     x = z
+mod x 26    x = z%26
+div z 26    z = z/26
+add x -2    x = z%26-2
+eql x w     x = (z%26-2 == d1)
+eql x 0     x = (z%26-2 != d1)
+mul y 0     y = 0
+add y 25    y = 25    
+mul y x     y = 25*x
+add y 1     y = 25*x + 1 = 26 o 1
+mul z y     z = 26*(z/26) o z/26
+mul y 0     y = 0
+add y w     y = d1
+add y 13    y = d1+13    
+mul y x     y = d1+13  o  0
+add z y     z = 26*(z/26) + (d1+13) o (z/26)
+
+
+from d0
+14 <= z_out <= 22
+
+=> z_in < 26 ^ z_in%26-2 != d1
+   14*26 <= z_in <= 22*26  ^  z_in%26-2 == d1

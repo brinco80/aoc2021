@@ -1,0 +1,20 @@
+d5
+            z = 26*zp + d6+8  | zp  termina en d10+15 d8+2
+inp w   #d5
+mul x 0     x = 0
+add x z     x = z
+mod x 26    x = z%26
+div z 26    z = z/26
+add x -7    x = z%26 - 7
+eql x w     x = (z%26 - 7 == d5)
+eql x 0     x = (z%26 - 7 != d5)
+mul y 0     y = 0
+add y 25    y = 25
+mul y x     y = 25*x
+add y 1     y = 25*x+1
+mul z y     z = (25*x+1)
+mul y 0     y = 0
+add y w     y = d5
+add y 14    y = d5+14
+mul y x     y = d5+14 | 0
+add z y     z = 26* (z/26) + d5+14 | z/26
