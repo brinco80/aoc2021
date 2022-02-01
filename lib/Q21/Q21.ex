@@ -7,15 +7,16 @@ defmodule Q21 do
 
     data_str
     |> String.split("\n", trim: true)
-    |> Enum.map(
-      fn line ->
-        [_player, p0] = Regex.run(~r/Player (\d) starting position: (\d+)/, line)
+    |> Enum.map(fn line ->
+      [_player, p0] =
+        Regex.run(~r/Player (\d) starting position: (\d+)/, line)
         |> tl
         |> Enum.map(&String.to_integer/1)
-        p0
-      end
-    )
-#    |> Map.new
+
+      p0
+    end)
+
+    #    |> Map.new
   end
 
   # this problem has a modulo logic (not-so) hidden
@@ -39,7 +40,7 @@ defmodule Q21 do
   # replacing on d(i) we have
   # d(i) = 9*i -3 mod 10
 
-  def deterministic_die(i), do: Integer.mod(9*i-3,10)
+  def deterministic_die(i), do: Integer.mod(9 * i - 3, 10)
 
   def dirac_die_freq() do
     %{
@@ -49,7 +50,7 @@ defmodule Q21 do
       6 => 7,
       7 => 6,
       8 => 3,
-      9 => 1,
+      9 => 1
     }
   end
 
@@ -63,7 +64,7 @@ defmodule Q21 do
   end
 
   def play(die, %{turn: t} = state) do
-    {p,s} = state[t]
+    {p, s} = state[t]
     new_play = _play(die, p, s)
 
     state
@@ -71,51 +72,63 @@ defmodule Q21 do
     |> Map.put(:turn, if(t == :p1, do: :p2, else: :p1))
   end
 
-
-  def game_state_to_string(%{turn: t, p1: {p1,s1}, p2: {p2, s2}}) do
-    "[P1 #{p1+1} #{s1}] [P2 #{p2+1} #{s2}] Next turn #{t}"
+  def game_state_to_string(%{turn: t, p1: {p1, s1}, p2: {p2, s2}}) do
+    "[P1 #{p1 + 1} #{s1}] [P2 #{p2 + 1} #{s2}] Next turn #{t}"
   end
 
-  def quantum_search( %{game: game_state, search: [w1, w2], mult: q, depth: d}, goal) do
+  def quantum_search(%{game: game_state, search: [w1, w2], mult: q, depth: d}, goal) do
     # For each die combination search recursively until someone wins
-    dirac_die_freq() |>
-    Enum.reduce([w1, w2],
-      fn {die, freq}, [acc_w1, acc_w2]  ->
+    dirac_die_freq()
+    |> Enum.reduce(
+      [w1, w2],
+      fn {die, freq}, [acc_w1, acc_w2] ->
         # play the game!
         new_game_state = play(die, game_state)
 
         case new_game_state do
-          %{p1: {_p, s}} when s >= goal ->  # player 1 wins
-            [acc_w1+freq*q, acc_w2] # add wins with unused weights
-          %{p2: {_p, s}} when s >= goal ->  # player 2 wins
-            [acc_w1, acc_w2+freq*q] # add wins with unused weights
-          _ -> # keep playing, update game_state and increase multiplier
-            quantum_search(%{game: new_game_state, search: [acc_w1, acc_w2], mult: q*freq, depth: d+1}, goal)
+          # player 1 wins
+          %{p1: {_p, s}} when s >= goal ->
+            # add wins with unused weights
+            [acc_w1 + freq * q, acc_w2]
+
+          # player 2 wins
+          %{p2: {_p, s}} when s >= goal ->
+            # add wins with unused weights
+            [acc_w1, acc_w2 + freq * q]
+
+          # keep playing, update game_state and increase multiplier
+          _ ->
+            quantum_search(
+              %{game: new_game_state, search: [acc_w1, acc_w2], mult: q * freq, depth: d + 1},
+              goal
+            )
         end
       end
     )
   end
 
-
   def part_i(filename \\ "lib/Q21/test") do
     [p10, p20] = read_and_parse(filename)
 
-    state0 = %{p1: {p10-1, 0}, p2: {p20-1, 0}, turn: :p1}
+    state0 = %{p1: {p10 - 1, 0}, p2: {p20 - 1, 0}, turn: :p1}
 
     1..10_000
-    |> Enum.reduce_while(state0,
+    |> Enum.reduce_while(
+      state0,
       fn turn, state ->
         new_state = deterministic_die(turn) |> play(state)
 
         case new_state do
           %{p1: {_p1, s1}, p2: {_p2, s2}} when s1 >= 1000 ->
             IO.puts("Player 1 wins at play #{turn}")
-            IO.puts("solution: #{3*turn*s2}")
+            IO.puts("solution: #{3 * turn * s2}")
             {:halt, new_state}
+
           %{p1: {_p1, s1}, p2: {_p2, s2}} when s2 >= 1000 ->
             IO.puts("Player 2 wins at play #{turn}")
-            IO.puts("solution: #{3*turn*s1}")
+            IO.puts("solution: #{3 * turn * s1}")
             {:halt, new_state}
+
           _ ->
             {:cont, new_state}
         end
@@ -126,7 +139,7 @@ defmodule Q21 do
   def part_ii(filename \\ "lib/Q21/test") do
     [p10, p20] = read_and_parse(filename)
 
-    game_state0 = %{p1: {p10-1, 0}, p2: {p20-1, 0}, turn: :p1}
+    game_state0 = %{p1: {p10 - 1, 0}, p2: {p20 - 1, 0}, turn: :p1}
     game_state0 |> game_state_to_string() |> IO.puts()
 
     state0 = %{game: game_state0, search: [0, 0], mult: 1, depth: 0}
